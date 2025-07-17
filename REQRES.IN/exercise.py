@@ -1,4 +1,5 @@
 from locust import HttpUser, task, between
+from locust import LoadTestShape
 import json
 import random
 import os
@@ -16,6 +17,20 @@ def load_data_from_file(filename):
                 users.append({'email': email, 'password': password})
     return users
 
+class myStagesShape(LoadTestShape): # Custom Load Test Shape
+    stages = [
+        {"duration":5, "users":10, "spawn_rate":10},
+        {"duration":10, "users":15, "spawn_rate":5},
+        {"duration":15, "users":20, "spawn_rate":2}
+    ]
+    def tick(self):
+        run_time =self.get_run_time()
+        for stage in self.stages:
+            if run_time < stage["duration"]:
+                return (stage["users"], stage["spawn_rate"])
+            run_time -= stage["duration"]
+        return None
+
 class myUser(HttpUser):
     wait_time = between(1,3)
     users = load_data_from_file('data_user.csv')
@@ -30,7 +45,7 @@ class myUser(HttpUser):
         'email': user['email'],
         'password': user['password']
     }
-
+    
     @task(1)
     def register(self):
         response = self.client.post('/api/register', data=json.dumps(self.payload), headers=self.headers)
