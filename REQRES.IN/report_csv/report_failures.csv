@@ -1,0 +1,4 @@
+Method,Name,Error,Occurrences
+POST,/api/login,HTTPError('429 Client Error: Too Many Requests for url: /api/login'),41
+POST,/api/register,HTTPError('429 Client Error: Too Many Requests for url: /api/register'),18
+POST,/api/login,HTTPError('400 Client Error: Bad Request for url: /api/login'),36
