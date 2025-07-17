@@ -17,7 +17,7 @@ def load_data_from_file(filename):
                 users.append({'email': email, 'password': password})
     return users
 
-class myStagesShape(LoadTestShape): # Custom Load Test Shape
+class myStagesShape(LoadTestShape):
     stages = [
         {"duration":5, "users":10, "spawn_rate":10},
         {"duration":10, "users":15, "spawn_rate":5},
@@ -58,7 +58,7 @@ class myUser(HttpUser):
 
     @task(2)
     def login(self):
-        response = self.client.post('/api/login', data=json.dumps(self.payload), headers=self.headers)
+        response = self.client.post('/api/login', data=json.dumps(self.users), headers=self.headers)
         if response.status_code == 200:
             token = response.json().get('token')
             print(f"User logged in successfully with token : {token}")
