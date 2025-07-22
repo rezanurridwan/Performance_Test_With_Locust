@@ -20,8 +20,7 @@ def load_data_from_file(filename):
 class myStagesShape(LoadTestShape):
     stages = [
         {"duration":5, "users":10, "spawn_rate":10},
-        {"duration":10, "users":15, "spawn_rate":5},
-        {"duration":15, "users":20, "spawn_rate":2}
+        {"duration":10, "users":15, "spawn_rate":5}
     ]
     def tick(self):
         run_time =self.get_run_time()
