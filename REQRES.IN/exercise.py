@@ -56,7 +56,7 @@ class myUser(HttpUser):
         else:
             print(f"Registration failed with status code: {response.status_code}, response: {response.text}")   
 
-    @task(2)
+    # @task(2)
     def login(self):
         response = self.client.post('/api/login', data=json.dumps(self.users), headers=self.headers)
         if response.status_code == 200:
