@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between, constant, constant_pacing
+from locust import HttpUser, task, between, constant, constant_pacing, events
 from locust import LoadTestShape
 import json
 import random
@@ -31,30 +31,35 @@ class myStagesShape(LoadTestShape):
             run_time -= stage["duration"]
         return None
 
+
+global_token = {}
+@events.test_start.add_listener
+def on_test_start(environment, **kwargs):
+    print("Test is starting...")
+    global global_token
+    
+    global_token = {
+        "x-api-key": "reqres-free-v1",
+    }
+
 class myUser(HttpUser):
-    # wait_time = between(1,3)
+    wait_time = between(1,3)
     # wait_time = constant(1)
-    wait_time = constant_pacing(2)
+    # wait_time = constant_pacing(2)
     users = load_data_from_file('data_user.csv')
     user = random.choice(users)
     host = 'https://reqres.in'
-    headers = {
+    
+    def on_start(self):
+        self.headers = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'x-api-key': 'reqres-free-v1'
-    }
-    payload = {
-        'email': user['email'],
-        'password': user['password']
-    }
-
-    def on_start(self):
-        # This method is called when a simulated user starts executing
-        self.register()
-        # self.login()
-    
-    # @task(1)
-    def register(self):
+        'x-api-key': global_token['x-api-key']
+        }
+        self.payload = {
+        'email': self.user['email'],
+        'password': self.user['password']
+        }
         response = self.client.post('/api/register', data=json.dumps(self.payload), headers=self.headers)
         if response.status_code == 200:
             id = response.json().get('id')
