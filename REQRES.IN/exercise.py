@@ -1,9 +1,10 @@
-from locust import HttpUser, task, between
+from locust import HttpUser, task, between, constant, constant_pacing
 from locust import LoadTestShape
 import json
 import random
 import os
 import csv
+from datetime import datetime
 
 def load_data_from_file(filename):
     users = []
@@ -20,7 +21,7 @@ def load_data_from_file(filename):
 class myStagesShape(LoadTestShape):
     stages = [
         {"duration":5, "users":10, "spawn_rate":10},
-        {"duration":10, "users":15, "spawn_rate":5}
+        # {"duration":10, "users":15, "spawn_rate":5}
     ]
     def tick(self):
         run_time =self.get_run_time()
@@ -31,7 +32,9 @@ class myStagesShape(LoadTestShape):
         return None
 
 class myUser(HttpUser):
-    wait_time = between(1,3)
+    # wait_time = between(1,3)
+    # wait_time = constant(1)
+    wait_time = constant_pacing(2)
     users = load_data_from_file('data_user.csv')
     user = random.choice(users)
     host = 'https://reqres.in'
@@ -44,8 +47,13 @@ class myUser(HttpUser):
         'email': user['email'],
         'password': user['password']
     }
+
+    def on_start(self):
+        # This method is called when a simulated user starts executing
+        self.register()
+        # self.login()
     
-    @task(1)
+    # @task(1)
     def register(self):
         response = self.client.post('/api/register', data=json.dumps(self.payload), headers=self.headers)
         if response.status_code == 200:
@@ -71,4 +79,9 @@ class myUser(HttpUser):
             print(f"List of users retrieved successfully: {len(users)} users found.")
         else:
             print(f"Failed to retrieve user list with status code: {response.status_code}, response: {response.text}")
+    # print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
    
+    def on_stop(self):
+        # This method is called when a simulated user stops executing
+        print(f"User {self.user['email']} has finished the test at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        # You can also perform cleanup actions here if needed
